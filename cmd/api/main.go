@@ -35,9 +35,19 @@ func main() {
 	// interface (HTTP handler)
 	ocrHandler := iface.NewOcrHandler(ocrUsecase)
 
+	// OCR エンドポイント
 	http.Handle("/api/ocr", ocrHandler)
+
+	// health エンドポイント（ここにもログを追加）
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("[Health] path =", r.URL.Path, "method =", r.Method)
 		w.Write([]byte("ok"))
+	})
+
+	// どのハンドラにもマッチしなかったときのフォールバック
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		log.Println("[Fallback] path =", r.URL.Path, "method =", r.Method)
+		http.NotFound(w, r)
 	})
 
 	port := os.Getenv("PORT")
