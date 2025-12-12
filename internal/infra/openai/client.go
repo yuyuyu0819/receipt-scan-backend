@@ -16,6 +16,7 @@ import (
 
 type client struct {
 	apiKey     string
+	model      string
 	httpClient *http.Client
 }
 
@@ -26,8 +27,14 @@ func NewFormatterClient() (ocr.Formatter, error) {
 		return nil, ErrMissingAPIKey
 	}
 
+	model := os.Getenv("OPENAI_CHAT_MODEL")
+	if model == "" {
+		model = "gpt-4o-mini" // lowest-cost Chat Completions model as of 2024-08
+	}
+
 	return &client{
 		apiKey: key,
+		model:  model,
 		httpClient: &http.Client{
 			Timeout: 30 * time.Second,
 		},
@@ -62,7 +69,7 @@ type chatResponse struct {
 
 func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedReceipt, error) {
 	payload := chatRequest{
-		Model:       "gpt-4o-mini",
+		Model:       c.model,
 		Temperature: 0.2,
 		Messages: []chatMessage{
 			{
