@@ -49,11 +49,18 @@ func (h *OcrHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	out, err := h.usecase.Execute(context.Background(), in)
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, ocr.ErrInsufficientQuota) {
+		msg := "OCR error: " + err.Error()
+
+		switch {
+		case errors.Is(err, ocr.ErrInsufficientQuota):
 			status = http.StatusPaymentRequired
+			msg = "OCR error: OpenAI の利用上限を超えています。レシートの文字数ではなく、課金/無料枠の上限に達しています。請求/クレジットを確認してください。"
+		case errors.Is(err, ocr.ErrContextLengthExceeded):
+			status = http.StatusRequestEntityTooLarge
+			msg = "OCR error: OpenAI のコンテキスト長を超えました。レシートを分割するか不要な行を削除して再送してください。"
 		}
 
-		http.Error(w, "OCR error: "+err.Error(), status)
+		http.Error(w, msg, status)
 		return
 	}
 

@@ -13,4 +13,7 @@ type Formatter interface {
 }
 
 // ErrInsufficientQuota は LLM 側の利用上限超過時に利用します。
-var ErrInsufficientQuota = errors.New("formatter insufficient quota")
+var (
+	ErrInsufficientQuota     = errors.New("formatter insufficient quota")
+	ErrContextLengthExceeded = errors.New("formatter context length exceeded")
+)

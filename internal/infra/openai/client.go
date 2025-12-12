@@ -121,6 +121,10 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 		var apiErr apiError
 		_ = json.Unmarshal(respBody, &apiErr)
 
+		if apiErr.Error.Code == "context_length_exceeded" {
+			return receipt.FormattedReceipt{}, fmt.Errorf("%w: 応答上限を超える長さのテキストが送信されました。OCR結果を短くして再試行してください", ocr.ErrContextLengthExceeded)
+		}
+
 		if resp.StatusCode == http.StatusTooManyRequests {
 			if apiErr.Error.Code == "insufficient_quota" {
 				return receipt.FormattedReceipt{}, fmt.Errorf("%w: %s (請求/クレジットを確認してください)", ocr.ErrInsufficientQuota, apiErr.Error.Message)
