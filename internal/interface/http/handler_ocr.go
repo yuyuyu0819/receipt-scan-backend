@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"receiptScan-backend/internal/domain/receipt"
@@ -47,7 +48,12 @@ func (h *OcrHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	out, err := h.usecase.Execute(context.Background(), in)
 	if err != nil {
-		http.Error(w, "OCR error: "+err.Error(), http.StatusInternalServerError)
+		status := http.StatusInternalServerError
+		if errors.Is(err, ocr.ErrInsufficientQuota) {
+			status = http.StatusPaymentRequired
+		}
+
+		http.Error(w, "OCR error: "+err.Error(), status)
 		return
 	}
 

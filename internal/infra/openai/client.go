@@ -22,6 +22,14 @@ type client struct {
 	httpClient *http.Client
 }
 
+type apiError struct {
+	Error struct {
+		Message string `json:"message"`
+		Type    string `json:"type"`
+		Code    string `json:"code"`
+	} `json:"error"`
+}
+
 // NewFormatterClient は OpenAI API を利用する整形クライアントを生成します。
 func NewFormatterClient() (ocr.Formatter, error) {
 	key := os.Getenv("OPENAI_API_KEY")
@@ -110,12 +118,26 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 			return receipt.FormattedReceipt{}, fmt.Errorf("failed to read OpenAI response: %w", err)
 		}
 
-		if resp.StatusCode == http.StatusTooManyRequests && attempt < maxRetries {
-			time.Sleep(retryDelay(resp.Header.Get("Retry-After"), attempt))
-			continue
+		var apiErr apiError
+		_ = json.Unmarshal(respBody, &apiErr)
+
+		if resp.StatusCode == http.StatusTooManyRequests {
+			if apiErr.Error.Code == "insufficient_quota" {
+				return receipt.FormattedReceipt{}, fmt.Errorf("%w: %s (請求/クレジットを確認してください)", ocr.ErrInsufficientQuota, apiErr.Error.Message)
+			}
+
+			if attempt < maxRetries {
+				time.Sleep(retryDelay(resp.Header.Get("Retry-After"), attempt))
+				continue
+			}
+		}
+
+		if apiErr.Error.Message != "" {
+			return receipt.FormattedReceipt{}, fmt.Errorf("openai api error: status %d: %s", resp.StatusCode, apiErr.Error.Message)
 		}
 
 		if resp.StatusCode >= 400 {
+			time.Sleep(retryDelay(resp.Header.Get("Retry-After"), attempt))
 			return receipt.FormattedReceipt{}, fmt.Errorf("openai api error: status %d: %s", resp.StatusCode, string(respBody))
 		}
 
