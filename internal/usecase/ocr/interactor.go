@@ -20,11 +20,13 @@ type UseCase interface {
 // 実装
 type interactor struct {
 	ocrService OCRService
+	formatter  Formatter
 }
 
-func NewUseCase(ocrService OCRService) UseCase {
+func NewUseCase(ocrService OCRService, formatter Formatter) UseCase {
 	return &interactor{
 		ocrService: ocrService,
+		formatter:  formatter,
 	}
 }
 
@@ -38,5 +40,10 @@ func (i *interactor) Execute(ctx context.Context, in Input) (Output, error) {
 		return Output{}, err
 	}
 
-	return Output{Result: result}, nil
+	formatted, err := i.formatter.Format(ctx, result.RawText)
+	if err != nil {
+		return Output{}, err
+	}
+
+	return Output{Result: result, Formatted: &formatted}, nil
 }

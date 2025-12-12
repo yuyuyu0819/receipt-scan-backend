@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"receiptScan-backend/internal/infra/openai"
 	"receiptScan-backend/internal/infra/vision"
 	iface "receiptScan-backend/internal/interface/http"
 	"receiptScan-backend/internal/usecase/ocr"
@@ -20,7 +21,6 @@ func main() {
 
 	log.Println("GOOGLE_APPLICATION_CREDENTIALS =", os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
 
-
 	ctx := context.Background()
 
 	// infra: Vision クライアント
@@ -29,8 +29,13 @@ func main() {
 		log.Fatal("failed to initialize Vision client:", err)
 	}
 
+	formatter, err := openai.NewFormatterClient()
+	if err != nil {
+		log.Fatal("failed to initialize OpenAI formatter:", err)
+	}
+
 	// usecase
-	ocrUsecase := ocr.NewUseCase(ocrService)
+	ocrUsecase := ocr.NewUseCase(ocrService, formatter)
 
 	// interface (HTTP handler)
 	ocrHandler := iface.NewOcrHandler(ocrUsecase)

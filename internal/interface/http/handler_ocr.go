@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+
+	"receiptScan-backend/internal/domain/receipt"
 	"receiptScan-backend/internal/usecase/ocr"
 )
 
@@ -22,7 +24,8 @@ type ocrRequest struct {
 
 // レスポンス DTO（外部向け）
 type ocrResponse struct {
-	Text string `json:"text"`
+	Text      string                    `json:"text"`
+	Formatted *receipt.FormattedReceipt `json:"formatted,omitempty"`
 }
 
 func (h *OcrHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -48,9 +51,7 @@ func (h *OcrHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := ocrResponse{
-		Text: out.Result.RawText,
-	}
+	res := ocrResponse{Text: out.Result.RawText, Formatted: out.Formatted}
 
 	w.Header().Set("Content-Type", "application/json")
 	_ = json.NewEncoder(w).Encode(res)
