@@ -83,3 +83,5 @@ google.golang.org/protobuf v1.36.10 h1:AYd7cD/uASjIL6Q9LiTjz8JLcrh/88q5UObnmY3aO
 google.golang.org/protobuf v1.36.10/go.mod h1:HTf+CrKn2C3g5S8VImy6tdcUvCska2kB7j23XfzDpco=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
+github.com/jackc/pgx/v5 v5.7.5 h1:K3c43EIBgzHuLlHotE5RX7V6czS4fFqqTZPIWvTo95Y=
+github.com/jackc/pgx/v5 v5.7.5/go.mod h1:gxVGPuSXpgimFeMwK+bPvVystA48BZMd4wAyJJ4p1NY=
