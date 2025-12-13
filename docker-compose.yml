@@ -1,8 +1,8 @@
 version: "3.9"
 services:
-  db:
+  postgres:
     image: postgres:16-alpine
-    container_name: receipt-scan-postgres
+    container_name: receipt-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: receipt
@@ -18,5 +18,6 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+
 volumes:
   pgdata:
