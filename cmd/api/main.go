@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"receiptScan-backend/internal/infra/db"
 	"receiptScan-backend/internal/infra/openai"
 	"receiptScan-backend/internal/infra/vision"
 	iface "receiptScan-backend/internal/interface/http"
@@ -23,6 +24,13 @@ func main() {
 
 	ctx := context.Background()
 
+	dbURL := os.Getenv("DATABASE_URL")
+	receiptRepo, err := db.NewReceiptRepository(ctx, dbURL)
+	if err != nil {
+		log.Fatal("failed to initialize database:", err)
+	}
+	defer receiptRepo.Close()
+
 	// infra: Vision クライアント
 	ocrService, err := vision.NewClient(ctx)
 	if err != nil {
@@ -35,7 +43,7 @@ func main() {
 	}
 
 	// usecase
-	ocrUsecase := ocr.NewUseCase(ocrService, formatter)
+	ocrUsecase := ocr.NewUseCase(ocrService, formatter, receiptRepo)
 
 	// interface (HTTP handler)
 	ocrHandler := iface.NewOcrHandler(ocrUsecase)
