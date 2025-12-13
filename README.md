@@ -26,6 +26,10 @@ cat db/schema.sql | docker compose exec -T postgres psql -U receipt -d receipt
 psql "$DATABASE_URL" -f db/schema.sql
 ```
 
+> 以前のスキーマで `receipts` テーブルに `items` カラム（JSON 形式）が存在する場合、
+> `db/schema.sql` にはそのカラムを削除する `ALTER TABLE` が含まれています。
+> 上記コマンドを実行することで NOT NULL 制約に起因する「null value in column "items"」エラーを解消できます。
+
 ## アプリの起動
 環境変数を `.env` などで設定した上で実行します。
 

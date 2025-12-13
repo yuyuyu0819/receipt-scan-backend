@@ -1,4 +1,11 @@
 -- Receipts table used by the application.
+--
+-- NOTE: Older versions stored items as a JSON column on receipts.
+-- To avoid NOT NULL violations when migrating existing databases,
+-- we drop that column if it exists before ensuring the current schema.
+ALTER TABLE IF EXISTS receipts
+    DROP COLUMN IF EXISTS items;
+
 CREATE TABLE IF NOT EXISTS receipts (
     id BIGSERIAL PRIMARY KEY,
     store TEXT NOT NULL,
