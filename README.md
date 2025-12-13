@@ -36,3 +36,27 @@ psql "$DATABASE_URL" -f db/schema.sql
 ```
 go run ./cmd/api
 ```
+
+### レシートに紐づく items を取得する API
+
+`/api/receipts/items` に対して、レシート ID を JSON で POST すると紐づく items の配列が返ります。
+
+リクエスト例:
+
+```bash
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -d '{"receiptId":123}' \
+  http://localhost:8080/api/receipts/items
+```
+
+レスポンス例:
+
+```json
+{
+  "items": [
+    {"id": 1, "receiptId": 123, "name": "りんご", "price": 120},
+    {"id": 2, "receiptId": 123, "name": "バナナ", "price": 180}
+  ]
+}
+```

@@ -10,6 +10,7 @@ import (
 	"receiptScan-backend/internal/infra/openai"
 	"receiptScan-backend/internal/infra/vision"
 	iface "receiptScan-backend/internal/interface/http"
+	"receiptScan-backend/internal/usecase/items"
 	"receiptScan-backend/internal/usecase/ocr"
 
 	"github.com/joho/godotenv"
@@ -48,12 +49,16 @@ func main() {
 
 	// usecase
 	ocrUsecase := ocr.NewUseCase(ocrService, formatter, receiptRepo)
+	itemsUsecase := items.NewUseCase(receiptRepo)
 
 	// interface (HTTP handler)
 	ocrHandler := iface.NewOcrHandler(ocrUsecase)
+	itemsHandler := iface.NewItemsHandler(itemsUsecase)
 
 	// OCR エンドポイント
 	http.Handle("/api/ocr", ocrHandler)
+	// レシート ID から items を取得するエンドポイント
+	http.Handle("/api/receipts/items", itemsHandler)
 
 	// health エンドポイント（ここにもログを追加）
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {

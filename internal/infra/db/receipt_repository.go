@@ -84,6 +84,35 @@ VALUES ($1, $2, $3)
 	return nil
 }
 
+// GetItemsByReceiptID returns items linked to the given receipt ID.
+func (r *ReceiptRepository) GetItemsByReceiptID(ctx context.Context, receiptID int64) ([]receipt.Item, error) {
+	rows, err := r.pool.Query(ctx, `
+SELECT id, receipt_id, name, price
+FROM items
+WHERE receipt_id = $1
+ORDER BY id
+`, receiptID)
+	if err != nil {
+		return nil, fmt.Errorf("query items: %w", err)
+	}
+	defer rows.Close()
+
+	var items []receipt.Item
+	for rows.Next() {
+		var item receipt.Item
+		if err := rows.Scan(&item.ID, &item.ReceiptID, &item.Name, &item.Price); err != nil {
+			return nil, fmt.Errorf("scan item: %w", err)
+		}
+		items = append(items, item)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate items: %w", err)
+	}
+
+	return items, nil
+}
+
 func parsePurchaseDate(dateStr string) (time.Time, error) {
 	layouts := []string{
 		time.DateOnly,
