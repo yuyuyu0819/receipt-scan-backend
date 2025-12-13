@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
+	"receiptScan-backend/internal/infra/db"
 	"receiptScan-backend/internal/infra/openai"
 	"receiptScan-backend/internal/infra/vision"
 	iface "receiptScan-backend/internal/interface/http"
@@ -23,6 +26,13 @@ func main() {
 
 	ctx := context.Background()
 
+	dbURL := buildDatabaseURL()
+	receiptRepo, err := db.NewReceiptRepository(ctx, dbURL)
+	if err != nil {
+		log.Fatal("failed to initialize database:", err)
+	}
+	defer receiptRepo.Close()
+
 	// infra: Vision クライアント
 	ocrService, err := vision.NewClient(ctx)
 	if err != nil {
@@ -35,7 +45,7 @@ func main() {
 	}
 
 	// usecase
-	ocrUsecase := ocr.NewUseCase(ocrService, formatter)
+	ocrUsecase := ocr.NewUseCase(ocrService, formatter, receiptRepo)
 
 	// interface (HTTP handler)
 	ocrHandler := iface.NewOcrHandler(ocrUsecase)
@@ -61,4 +71,42 @@ func main() {
 	}
 	log.Println("Listening on :" + port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))
+}
+
+// buildDatabaseURL は環境変数から接続文字列を構築します。
+// DATABASE_URL が設定されている場合はそれを優先し、なければ
+// docker-compose で用意したデフォルト (receipt/receipt@localhost:5432) を使います。
+// 任意で PGHOST / PGPORT / PGUSER / PGPASSWORD / PGDATABASE / PGSSLMODE を上書きできます。
+func buildDatabaseURL() string {
+	if dsn := os.Getenv("DATABASE_URL"); dsn != "" {
+		return dsn
+	}
+
+	host := getenvDefault("PGHOST", "localhost")
+	port := getenvDefault("PGPORT", "5432")
+	user := getenvDefault("PGUSER", "receipt")
+	password := getenvDefault("PGPASSWORD", "receipt")
+	database := getenvDefault("PGDATABASE", "receipt")
+	sslMode := getenvDefault("PGSSLMODE", "disable")
+
+	// URL エンコードを意識して url.URL を組み立てる
+	u := &url.URL{
+		Scheme: "postgres",
+		Host:   fmt.Sprintf("%s:%s", host, port),
+		Path:   "/" + database,
+		User:   url.UserPassword(user, password),
+	}
+
+	q := u.Query()
+	q.Set("sslmode", sslMode)
+	u.RawQuery = q.Encode()
+
+	return u.String()
+}
+
+func getenvDefault(key, defaultValue string) string {
+	if v := os.Getenv(key); v != "" {
+		return v
+	}
+	return defaultValue
 }
