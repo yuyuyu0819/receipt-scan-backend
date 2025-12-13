@@ -5,9 +5,9 @@ go 1.24.0
 toolchain go1.24.11
 
 require (
-cloud.google.com/go/vision/v2 v2.9.6
-github.com/jackc/pgx/v5 v5.7.5
-github.com/joho/godotenv v1.5.1
+	cloud.google.com/go/vision/v2 v2.9.6
+	github.com/jackc/pgx/v5 v5.7.6
+	github.com/joho/godotenv v1.5.1
 )
 
 require (
@@ -22,6 +22,9 @@ require (
 	github.com/google/s2a-go v0.1.9 // indirect
 	github.com/googleapis/enterprise-certificate-proxy v0.3.6 // indirect
 	github.com/googleapis/gax-go/v2 v2.15.0 // indirect
+	github.com/jackc/pgpassfile v1.0.0 // indirect
+	github.com/jackc/pgservicefile v0.0.0-20240606120523-5a60cdf6a761 // indirect
+	github.com/jackc/puddle/v2 v2.2.2 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.61.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.61.0 // indirect
