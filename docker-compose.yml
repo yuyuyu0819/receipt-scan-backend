@@ -1,0 +1,22 @@
+version: "3.9"
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: receipt-scan-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: receipt
+      POSTGRES_PASSWORD: receipt
+      POSTGRES_DB: receipt
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U receipt -d receipt"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+volumes:
+  pgdata:

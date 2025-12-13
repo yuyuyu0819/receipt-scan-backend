@@ -25,6 +25,10 @@ func main() {
 	ctx := context.Background()
 
 	dbURL := os.Getenv("DATABASE_URL")
+	if dbURL == "" {
+		// docker-compose (postgres:16-alpine) のデフォルト設定
+		dbURL = "postgres://receipt:receipt@localhost:5432/receipt?sslmode=disable"
+	}
 	receiptRepo, err := db.NewReceiptRepository(ctx, dbURL)
 	if err != nil {
 		log.Fatal("failed to initialize database:", err)
