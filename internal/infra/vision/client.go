@@ -1,8 +1,8 @@
 package vision
 
 import (
-	cloudvision  "cloud.google.com/go/vision/v2/apiv1"
-    visionpb "cloud.google.com/go/vision/v2/apiv1/visionpb"
+	cloudvision "cloud.google.com/go/vision/v2/apiv1"
+	visionpb "cloud.google.com/go/vision/v2/apiv1/visionpb"
 	"context"
 	"encoding/base64"
 	"os"
@@ -50,6 +50,14 @@ func (c *client) DetectText(ctx context.Context, imageBase64 string) (receipt.Oc
 	imgBytes, err := base64.StdEncoding.DecodeString(imageBase64)
 	if err != nil {
 		return receipt.OcrResult{}, err
+	}
+
+	if looksLikePDF(imgBytes) {
+		converted, err := convertPDFToJPEG(imgBytes)
+		if err != nil {
+			return receipt.OcrResult{}, err
+		}
+		imgBytes = converted
 	}
 
 	image := &visionpb.Image{

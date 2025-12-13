@@ -37,6 +37,10 @@ psql "$DATABASE_URL" -f db/schema.sql
 go run ./cmd/api
 ```
 
+### OCR で PDF を送る場合
+- リクエストの `imageBase64` に PDF を含めると、サーバー側で自動的に **先頭ページを JPEG に変換** してから Vision API に送ります（Vision のエンドポイントは JPEG/PNG などの画像形式に対応するため）。
+- 複数ページ PDF を渡した場合は 1 ページ目のみが OCR 対象になります。
+
 ### レシートに紐づく items を取得する API
 
 `/api/receipts/items` に対して、レシート ID を JSON で POST すると紐づく items の配列が返ります。
