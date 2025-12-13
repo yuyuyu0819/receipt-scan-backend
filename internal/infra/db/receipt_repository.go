@@ -48,7 +48,7 @@ func (r *ReceiptRepository) Save(ctx context.Context, f receipt.FormattedReceipt
 		return fmt.Errorf("marshal items: %w", err)
 	}
 
-	purchaseDate, err := time.Parse(time.DateOnly, f.Date)
+	purchaseDate, err := parsePurchaseDate(f.Date)
 	if err != nil {
 		return fmt.Errorf("parse date: %w", err)
 	}
@@ -62,4 +62,24 @@ VALUES ($1, $2, $3, $4)
 	}
 
 	return nil
+}
+
+func parsePurchaseDate(dateStr string) (time.Time, error) {
+	layouts := []string{
+		time.DateOnly,
+		"2006-01-02T15:04:05",
+		time.RFC3339,
+		time.RFC3339Nano,
+	}
+
+	var lastErr error
+	for _, layout := range layouts {
+		t, err := time.Parse(layout, dateStr)
+		if err == nil {
+			return time.Date(t.Year(), t.Month(), t.Day(), 0, 0, 0, 0, time.UTC), nil
+		}
+		lastErr = err
+	}
+
+	return time.Time{}, lastErr
 }
