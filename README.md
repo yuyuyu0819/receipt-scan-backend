@@ -41,6 +41,12 @@ go run ./cmd/api
 
 `/api/receipts/items` に対して、レシート ID を JSON で POST すると紐づく items の配列が返ります。
 
+#### リクエストに必要な情報
+- HTTP メソッド: `POST`
+- ヘッダー: `Content-Type: application/json`
+- ボディ: 次の JSON を送ります。
+  - `receiptId` (number, 必須): 取得したいレシートの ID。0 以下はエラーになります。
+
 リクエスト例:
 
 ```bash
