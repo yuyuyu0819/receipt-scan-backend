@@ -1,8 +1,8 @@
 package vision
 
 import (
-	cloudvision  "cloud.google.com/go/vision/v2/apiv1"
-    visionpb "cloud.google.com/go/vision/v2/apiv1/visionpb"
+	cloudvision "cloud.google.com/go/vision/v2/apiv1"
+	visionpb "cloud.google.com/go/vision/v2/apiv1/visionpb"
 	"context"
 	"encoding/base64"
 	"os"
