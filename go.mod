@@ -6,7 +6,6 @@ toolchain go1.24.11
 
 require (
 cloud.google.com/go/vision/v2 v2.9.6
-github.com/gen2brain/go-fitz/v2 v2.18.0
 github.com/jackc/pgx/v5 v5.7.6
 github.com/joho/godotenv v1.5.1
 )

@@ -52,14 +52,6 @@ func (c *client) DetectText(ctx context.Context, imageBase64 string) (receipt.Oc
 		return receipt.OcrResult{}, err
 	}
 
-	if looksLikePDF(imgBytes) {
-		converted, err := convertPDFToJPEG(imgBytes)
-		if err != nil {
-			return receipt.OcrResult{}, err
-		}
-		imgBytes = converted
-	}
-
 	image := &visionpb.Image{
 		Content: imgBytes,
 	}
