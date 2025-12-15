@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings" // ★ 追加
 	"time"
 
 	"receiptScan-backend/internal/domain/receipt"
@@ -40,7 +41,7 @@ func NewFormatterClient() (ocr.Formatter, error) {
 
 	model := os.Getenv("OPENAI_CHAT_MODEL")
 	if model == "" {
-		model = "gpt-4o-mini" // lowest-cost Chat Completions model as of 2024-08
+		model = "gpt-4o-mini"
 	}
 
 	return &client{
@@ -55,25 +56,21 @@ func NewFormatterClient() (ocr.Formatter, error) {
 // ErrMissingAPIKey は API キーが未設定のときに返されます。
 var ErrMissingAPIKey = errors.New("OPENAI_API_KEY is not set")
 
-// chatMessage は Chat Completions API のメッセージを表します。
 type chatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-// chatRequest は Chat Completions API のリクエストボディです。
 type chatRequest struct {
 	Model       string        `json:"model"`
 	Temperature float32       `json:"temperature"`
 	Messages    []chatMessage `json:"messages"`
 }
 
-// chatChoice は Chat Completions API のレスポンスの一部です。
 type chatChoice struct {
 	Message chatMessage `json:"message"`
 }
 
-// chatResponse は Chat Completions API のレスポンスボディです。
 type chatResponse struct {
 	Choices []chatChoice `json:"choices"`
 }
@@ -84,12 +81,19 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 		Temperature: 0.2,
 		Messages: []chatMessage{
 			{
-				Role:    "system",
-				Content: "あなたはレシートOCR結果を JSON に整形するアシスタントです。必ず有効な JSON のみを返してください。",
+				Role: "system",
+				Content: "あなたはレシートOCR結果を JSON に整形するアシスタントです。" +
+					"説明文、Markdown、コードブロック（```）を一切含めず、純粋なJSONのみを返してください。",
 			},
 			{
-				Role:    "user",
-				Content: fmt.Sprintf("以下のOCR結果を JSON で返してください。スキーマ: {\\\"store\\\": string, \\\"date\\\": string, \\\"total\\\": number, \\\"items\\\": [{\\\"name\\\": string, \\\"price\\\": number}]}. 数値は半角で。\\nOCR結果:\n%s", rawText),
+				Role: "user",
+				Content: fmt.Sprintf(
+					"以下のOCR結果を JSON で返してください。"+
+						"スキーマ: {\"store\": string, \"date\": string, \"total\": number, \"items\": [{\"name\": string, \"price\": number}]}."+
+						"date は必ず YYYY-MM-DD 形式（例: 2025-12-13）。数値は半角。"+
+						"\nOCR結果:\n%s",
+					rawText,
+				),
 			},
 		},
 	}
@@ -100,8 +104,8 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 	}
 
 	const maxRetries = 3
-
 	var completion chatResponse
+
 	for attempt := 0; attempt <= maxRetries; attempt++ {
 		req, err := c.newChatRequest(ctx, body)
 		if err != nil {
@@ -123,12 +127,19 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 		_ = json.Unmarshal(respBody, &apiErr)
 
 		if apiErr.Error.Code == "context_length_exceeded" {
-			return receipt.FormattedReceipt{}, fmt.Errorf("%w: 応答上限を超える長さのテキストが送信されました。OCR結果を短くして再試行してください", ocr.ErrContextLengthExceeded)
+			return receipt.FormattedReceipt{}, fmt.Errorf(
+				"%w: 応答上限を超える長さのテキストが送信されました。OCR結果を短くして再試行してください",
+				ocr.ErrContextLengthExceeded,
+			)
 		}
 
 		if resp.StatusCode == http.StatusTooManyRequests {
 			if apiErr.Error.Code == "insufficient_quota" {
-				return receipt.FormattedReceipt{}, fmt.Errorf("%w: %s (請求/クレジットを確認してください)", ocr.ErrInsufficientQuota, apiErr.Error.Message)
+				return receipt.FormattedReceipt{}, fmt.Errorf(
+					"%w: %s (請求/クレジットを確認してください)",
+					ocr.ErrInsufficientQuota,
+					apiErr.Error.Message,
+				)
 			}
 
 			if attempt < maxRetries {
@@ -138,12 +149,20 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 		}
 
 		if apiErr.Error.Message != "" {
-			return receipt.FormattedReceipt{}, fmt.Errorf("openai api error: status %d: %s", resp.StatusCode, apiErr.Error.Message)
+			return receipt.FormattedReceipt{}, fmt.Errorf(
+				"openai api error: status %d: %s",
+				resp.StatusCode,
+				apiErr.Error.Message,
+			)
 		}
 
 		if resp.StatusCode >= 400 {
 			time.Sleep(retryDelay(resp.Header.Get("Retry-After"), attempt))
-			return receipt.FormattedReceipt{}, fmt.Errorf("openai api error: status %d: %s", resp.StatusCode, string(respBody))
+			return receipt.FormattedReceipt{}, fmt.Errorf(
+				"openai api error: status %d: %s",
+				resp.StatusCode,
+				string(respBody),
+			)
 		}
 
 		if err := json.Unmarshal(respBody, &completion); err != nil {
@@ -157,9 +176,25 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 		return receipt.FormattedReceipt{}, errors.New("no choices returned from OpenAI")
 	}
 
+	// ===== ★ ここが今回の本質的修正点 =====
+	content := strings.TrimSpace(completion.Choices[0].Message.Content)
+
+	// ```json ... ``` を除去
+	if strings.HasPrefix(content, "```") {
+		content = strings.TrimPrefix(content, "```json")
+		content = strings.TrimPrefix(content, "```")
+		content = strings.TrimSuffix(content, "```")
+		content = strings.TrimSpace(content)
+	}
+	// ======================================
+
 	var formatted receipt.FormattedReceipt
-	if err := json.Unmarshal([]byte(completion.Choices[0].Message.Content), &formatted); err != nil {
-		log.Printf("failed to parse OpenAI response, rawText=%q, response=%q", rawText, completion.Choices[0].Message.Content)
+	if err := json.Unmarshal([]byte(content), &formatted); err != nil {
+		log.Printf(
+			"failed to parse OpenAI response, rawText=%q, response=%q",
+			rawText,
+			completion.Choices[0].Message.Content,
+		)
 		return receipt.FormattedReceipt{}, fmt.Errorf("failed to parse OpenAI response: %w", err)
 	}
 
@@ -167,7 +202,12 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 }
 
 func (c *client) newChatRequest(ctx context.Context, body []byte) (*http.Request, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://api.openai.com/v1/chat/completions", bytes.NewReader(body))
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPost,
+		"https://api.openai.com/v1/chat/completions",
+		bytes.NewReader(body),
+	)
 	if err != nil {
 		return nil, err
 	}
