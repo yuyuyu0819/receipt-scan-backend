@@ -51,31 +51,12 @@ func main() {
 	ocrUsecase := ocr.NewUseCase(ocrService, formatter, receiptRepo)
 	itemsUsecase := items.NewUseCase(receiptRepo)
 
-	// interface (HTTP handler)
-	ocrHandler := iface.NewOcrHandler(ocrUsecase)
-	itemsHandler := iface.NewItemsHandler(itemsUsecase)
-
-	// OCR エンドポイント
-	http.Handle("/api/ocr", ocrHandler)
-	// レシート ID から items を取得するエンドポイント
-	http.Handle("/api/receipts/items", itemsHandler)
-
-	// health エンドポイント（ここにもログを追加）
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("[Health] path =", r.URL.Path, "method =", r.Method)
-		w.Write([]byte("ok"))
-	})
-
-	// どのハンドラにもマッチしなかったときのフォールバック
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("[Fallback] path =", r.URL.Path, "method =", r.Method)
-		http.NotFound(w, r)
-	})
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
+
+	mux := iface.NewMux(ocrUsecase, itemsUsecase)
 	log.Println("Listening on :" + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
