@@ -12,6 +12,7 @@ import (
 	iface "receiptScan-backend/internal/interface/http"
 	"receiptScan-backend/internal/usecase/items"
 	"receiptScan-backend/internal/usecase/ocr"
+	"receiptScan-backend/internal/usecase/receipts"
 
 	"github.com/joho/godotenv"
 )
@@ -48,34 +49,16 @@ func main() {
 	}
 
 	// usecase
-	ocrUsecase := ocr.NewUseCase(ocrService, formatter, receiptRepo)
+	ocrUsecase := ocr.NewUseCase(ocrService, formatter)
 	itemsUsecase := items.NewUseCase(receiptRepo)
-
-	// interface (HTTP handler)
-	ocrHandler := iface.NewOcrHandler(ocrUsecase)
-	itemsHandler := iface.NewItemsHandler(itemsUsecase)
-
-	// OCR エンドポイント
-	http.Handle("/api/ocr", ocrHandler)
-	// レシート ID から items を取得するエンドポイント
-	http.Handle("/api/receipts/items", itemsHandler)
-
-	// health エンドポイント（ここにもログを追加）
-	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("[Health] path =", r.URL.Path, "method =", r.Method)
-		w.Write([]byte("ok"))
-	})
-
-	// どのハンドラにもマッチしなかったときのフォールバック
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		log.Println("[Fallback] path =", r.URL.Path, "method =", r.Method)
-		http.NotFound(w, r)
-	})
+	receiptsUsecase := receipts.NewUseCase(receiptRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
+
+	mux := iface.NewMux(ocrUsecase, itemsUsecase, receiptsUsecase)
 	log.Println("Listening on :" + port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
