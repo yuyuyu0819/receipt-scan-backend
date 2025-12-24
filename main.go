@@ -12,6 +12,7 @@ import (
 	iface "receiptScan-backend/internal/interface/http"
 	"receiptScan-backend/internal/usecase/items"
 	"receiptScan-backend/internal/usecase/ocr"
+	"receiptScan-backend/internal/usecase/receipts"
 
 	"github.com/joho/godotenv"
 )
@@ -48,15 +49,16 @@ func main() {
 	}
 
 	// usecase
-	ocrUsecase := ocr.NewUseCase(ocrService, formatter, receiptRepo)
+	ocrUsecase := ocr.NewUseCase(ocrService, formatter)
 	itemsUsecase := items.NewUseCase(receiptRepo)
+	receiptsUsecase := receipts.NewUseCase(receiptRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	mux := iface.NewMux(ocrUsecase, itemsUsecase)
+	mux := iface.NewMux(ocrUsecase, itemsUsecase, receiptsUsecase)
 	log.Println("Listening on :" + port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
