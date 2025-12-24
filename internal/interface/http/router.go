@@ -20,23 +20,23 @@ func NewMux(ocrUsecase ocr.UseCase, itemsUsecase items.UseCase, receiptsUsecase 
 	receiptsHandler := NewReceiptsHandler(receiptsUsecase)
 
 	// OCR エンドポイント
-	mux.Handle("/api/ocr", ocrHandler)
+	mux.Handle("/api/ocr", LoggingMiddleware(ocrHandler))
 	// レシート ID から items を取得するエンドポイント
-	mux.Handle("/api/receipts/items", itemsHandler)
+	mux.Handle("/api/receipts/items", LoggingMiddleware(itemsHandler))
 	// レシート内容を登録するエンドポイント
-	mux.Handle("/api/receipts", receiptsHandler)
+	mux.Handle("/api/receipts", LoggingMiddleware(receiptsHandler))
 
 	// health エンドポイント（ここにもログを追加）
-	mux.HandleFunc("/health", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
+	mux.Handle("/health", LoggingMiddleware(stdhttp.HandlerFunc(func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
 		log.Println("[Health] path =", r.URL.Path, "method =", r.Method)
 		_, _ = w.Write([]byte("ok"))
-	})
+	})))
 
 	// どのハンドラにもマッチしなかったときのフォールバック
-	mux.HandleFunc("/", func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
+	mux.Handle("/", LoggingMiddleware(stdhttp.HandlerFunc(func(w stdhttp.ResponseWriter, r *stdhttp.Request) {
 		log.Println("[Fallback] path =", r.URL.Path, "method =", r.Method)
 		stdhttp.NotFound(w, r)
-	})
+	})))
 
 	return mux
 }
