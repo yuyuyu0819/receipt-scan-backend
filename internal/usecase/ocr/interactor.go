@@ -21,14 +21,12 @@ type UseCase interface {
 type interactor struct {
 	ocrService OCRService
 	formatter  Formatter
-	repository receipt.Repository
 }
 
-func NewUseCase(ocrService OCRService, formatter Formatter, repository receipt.Repository) UseCase {
+func NewUseCase(ocrService OCRService, formatter Formatter) UseCase {
 	return &interactor{
 		ocrService: ocrService,
 		formatter:  formatter,
-		repository: repository,
 	}
 }
 
@@ -44,10 +42,6 @@ func (i *interactor) Execute(ctx context.Context, in Input) (Output, error) {
 
 	formatted, err := i.formatter.Format(ctx, result.RawText)
 	if err != nil {
-		return Output{}, err
-	}
-
-	if err := i.repository.Save(ctx, formatted); err != nil {
 		return Output{}, err
 	}
 
