@@ -24,7 +24,6 @@ func NewMux(ocrUsecase ocr.UseCase, itemsUsecase items.UseCase, receiptsUsecase 
 	receiptsListHandler := NewReceiptsListHandler(receiptsListUsecase)
 	loginHandler := NewLoginHandler(loginUsecase)
 	signupHandler := NewSignupHandler(signupUsecase)
-	activationHandler := NewActivationHandler()
 
 	// OCR エンドポイント
 	mux.Handle("/api/ocr", LoggingMiddleware(ocrHandler))
@@ -32,8 +31,6 @@ func NewMux(ocrUsecase ocr.UseCase, itemsUsecase items.UseCase, receiptsUsecase 
 	mux.Handle("/api/login", LoggingMiddleware(loginHandler))
 	// ユーザー作成エンドポイント
 	mux.Handle("/api/users", LoggingMiddleware(signupHandler))
-	// アカウント有効化ページ
-	mux.Handle("/activate", LoggingMiddleware(activationHandler))
 	// レシート ID から items を取得するエンドポイント
 	mux.Handle("/api/receipts/items", LoggingMiddleware(itemsHandler))
 	// レシート内容を登録するエンドポイント

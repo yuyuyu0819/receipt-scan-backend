@@ -75,7 +75,7 @@ paths:
           description: Invalid credentials
   /api/users:
     post:
-      summary: Create a new user and send confirmation email
+      summary: Create a new user with reCAPTCHA verification
       requestBody:
         required: true
         content:
@@ -86,6 +86,7 @@ paths:
                 - userId
                 - password
                 - email
+                - recaptchaToken
               properties:
                 userId:
                   type: integer
@@ -95,6 +96,8 @@ paths:
                 email:
                   type: string
                   format: email
+                recaptchaToken:
+                  type: string
       responses:
         "200":
           description: User created
@@ -109,23 +112,6 @@ paths:
                     type: string
         "400":
           description: Validation error
-  /activate:
-    get:
-      summary: Activation completion page
-      parameters:
-        - name: userId
-          in: query
-          required: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        "200":
-          description: HTML activation page
-          content:
-            text/html:
-              schema:
-                type: string
   /api/receipts:
     post:
       summary: Save a formatted receipt

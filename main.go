@@ -7,8 +7,8 @@ import (
 	"os"
 
 	"receiptScan-backend/internal/infra/db"
-	"receiptScan-backend/internal/infra/email"
 	"receiptScan-backend/internal/infra/openai"
+	"receiptScan-backend/internal/infra/recaptcha"
 	"receiptScan-backend/internal/infra/vision"
 	iface "receiptScan-backend/internal/interface/http"
 	"receiptScan-backend/internal/usecase/items"
@@ -56,9 +56,9 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to initialize OpenAI formatter:", err)
 	}
-	mailer, err := email.NewSMTPSenderFromEnv()
+	verifier, err := recaptcha.NewGoogleVerifierFromEnv()
 	if err != nil {
-		log.Fatal("failed to initialize SMTP sender:", err)
+		log.Fatal("failed to initialize reCAPTCHA verifier:", err)
 	}
 
 	// usecase
@@ -67,7 +67,7 @@ func main() {
 	receiptsUsecase := receipts.NewUseCase(receiptRepo)
 	receiptsListUsecase := receiptslist.NewUseCase(receiptRepo)
 	loginUsecase := login.NewUseCase(userRepo)
-	signupUsecase := signup.NewUseCase(userRepo, mailer)
+	signupUsecase := signup.NewUseCase(userRepo, verifier)
 
 	port := os.Getenv("PORT")
 	if port == "" {
