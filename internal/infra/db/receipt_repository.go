@@ -60,10 +60,10 @@ func (r *ReceiptRepository) Save(ctx context.Context, f receipt.FormattedReceipt
 
 	var receiptID int64
 	err = tx.QueryRow(ctx, `
-INSERT INTO receipts (store, date, total)
-VALUES ($1, $2, $3)
+INSERT INTO receipts (user_id, store, date, total)
+VALUES ($1, $2, $3, $4)
 RETURNING id
-`, f.Store, purchaseDate, f.Total).Scan(&receiptID)
+`, f.UserID, f.Store, purchaseDate, f.Total).Scan(&receiptID)
 	if err != nil {
 		return fmt.Errorf("insert receipt: %w", err)
 	}
@@ -111,6 +111,37 @@ ORDER BY id
 	}
 
 	return items, nil
+}
+
+// GetReceiptsByUserID returns receipts linked to the given user ID.
+func (r *ReceiptRepository) GetReceiptsByUserID(ctx context.Context, userID int64) ([]receipt.Receipt, error) {
+	rows, err := r.pool.Query(ctx, `
+SELECT id, user_id, store, date, total
+FROM receipts
+WHERE user_id = $1
+ORDER BY date DESC, id DESC
+`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("query receipts: %w", err)
+	}
+	defer rows.Close()
+
+	var receipts []receipt.Receipt
+	for rows.Next() {
+		var entry receipt.Receipt
+		var purchaseDate time.Time
+		if err := rows.Scan(&entry.ID, &entry.UserID, &entry.Store, &purchaseDate, &entry.Total); err != nil {
+			return nil, fmt.Errorf("scan receipt: %w", err)
+		}
+		entry.Date = purchaseDate.Format(time.DateOnly)
+		receipts = append(receipts, entry)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("iterate receipts: %w", err)
+	}
+
+	return receipts, nil
 }
 
 func parsePurchaseDate(dateStr string) (time.Time, error) {

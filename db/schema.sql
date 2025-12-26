@@ -1,3 +1,17 @@
+-- Users table used for authentication.
+CREATE TABLE IF NOT EXISTS users (
+    id BIGSERIAL PRIMARY KEY,
+    email TEXT NOT NULL,
+    password_hash TEXT NOT NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE IF EXISTS users
+    ADD COLUMN IF NOT EXISTS email TEXT;
+ALTER TABLE IF EXISTS users
+    ADD COLUMN IF NOT EXISTS password_hash TEXT;
+ALTER TABLE IF EXISTS users
+    DROP COLUMN IF EXISTS password;
+
 -- Receipts table used by the application.
 --
 -- NOTE: Older versions stored items as a JSON column on receipts.
@@ -5,9 +19,12 @@
 -- we drop that column if it exists before ensuring the current schema.
 ALTER TABLE IF EXISTS receipts
     DROP COLUMN IF EXISTS items;
+ALTER TABLE IF EXISTS receipts
+    ADD COLUMN IF NOT EXISTS user_id BIGINT REFERENCES users(id);
 
 CREATE TABLE IF NOT EXISTS receipts (
     id BIGSERIAL PRIMARY KEY,
+    user_id BIGINT REFERENCES users(id),
     store TEXT NOT NULL,
     date DATE NOT NULL,
     total INTEGER NOT NULL CHECK (total >= 0),
@@ -16,6 +33,7 @@ CREATE TABLE IF NOT EXISTS receipts (
 
 -- Recommended index for querying receipts by purchase date.
 CREATE INDEX IF NOT EXISTS idx_receipts_date ON receipts (date);
+CREATE INDEX IF NOT EXISTS idx_receipts_user_id ON receipts (user_id);
 
 -- Items table linked to receipts.
 CREATE TABLE IF NOT EXISTS items (

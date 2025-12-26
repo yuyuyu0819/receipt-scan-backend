@@ -7,12 +7,16 @@ import (
 	"os"
 
 	"receiptScan-backend/internal/infra/db"
+	"receiptScan-backend/internal/infra/email"
 	"receiptScan-backend/internal/infra/openai"
 	"receiptScan-backend/internal/infra/vision"
 	iface "receiptScan-backend/internal/interface/http"
 	"receiptScan-backend/internal/usecase/items"
+	"receiptScan-backend/internal/usecase/login"
 	"receiptScan-backend/internal/usecase/ocr"
 	"receiptScan-backend/internal/usecase/receipts"
+	"receiptScan-backend/internal/usecase/receiptslist"
+	"receiptScan-backend/internal/usecase/signup"
 
 	"github.com/joho/godotenv"
 )
@@ -36,6 +40,11 @@ func main() {
 		log.Fatal("failed to initialize database:", err)
 	}
 	defer receiptRepo.Close()
+	userRepo, err := db.NewUserRepository(ctx, dbURL)
+	if err != nil {
+		log.Fatal("failed to initialize user database:", err)
+	}
+	defer userRepo.Close()
 
 	// infra: Vision クライアント
 	ocrService, err := vision.NewClient(ctx)
@@ -47,18 +56,25 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to initialize OpenAI formatter:", err)
 	}
+	mailer, err := email.NewSMTPSenderFromEnv()
+	if err != nil {
+		log.Fatal("failed to initialize SMTP sender:", err)
+	}
 
 	// usecase
 	ocrUsecase := ocr.NewUseCase(ocrService, formatter)
 	itemsUsecase := items.NewUseCase(receiptRepo)
 	receiptsUsecase := receipts.NewUseCase(receiptRepo)
+	receiptsListUsecase := receiptslist.NewUseCase(receiptRepo)
+	loginUsecase := login.NewUseCase(userRepo)
+	signupUsecase := signup.NewUseCase(userRepo, mailer)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	mux := iface.NewMux(ocrUsecase, itemsUsecase, receiptsUsecase)
+	mux := iface.NewMux(ocrUsecase, itemsUsecase, receiptsUsecase, receiptsListUsecase, loginUsecase, signupUsecase)
 	log.Println("Listening on :" + port)
 	log.Fatal(http.ListenAndServe(":"+port, mux))
 }
