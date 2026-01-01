@@ -17,7 +17,7 @@ func NewLoginHandler(u login.UseCase) *LoginHandler {
 }
 
 type loginRequest struct {
-	UserID   int64  `json:"userId"`
+	UserID   string `json:"userId"`
 	Password string `json:"password"`
 }
 

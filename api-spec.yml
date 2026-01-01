@@ -88,8 +88,7 @@ paths:
                 - recaptchaToken
               properties:
                 userId:
-                  type: integer
-                  format: int64
+                  type: string
                 password:
                   type: string
                 email:
@@ -178,8 +177,7 @@ paths:
                 - userId
               properties:
                 userId:
-                  type: integer
-                  format: int64
+                  type: string
       responses:
         "200":
           description: Receipts list
@@ -224,8 +222,7 @@ components:
         - items
       properties:
         userId:
-          type: integer
-          format: int64
+          type: string
         store:
           type: string
         date:
@@ -267,8 +264,7 @@ components:
           type: integer
           format: int64
         userId:
-          type: integer
-          format: int64
+          type: string
         store:
           type: string
         date:

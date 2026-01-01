@@ -3,12 +3,13 @@ package login
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"receiptScan-backend/internal/domain/user"
 )
 
 // ErrInvalidUserID is returned when the user ID is invalid.
-var ErrInvalidUserID = errors.New("userId must be positive")
+var ErrInvalidUserID = errors.New("userId must not be empty")
 
 // ErrInvalidPassword is returned when the password is empty.
 var ErrInvalidPassword = errors.New("password must not be empty")
@@ -31,7 +32,7 @@ func NewUseCase(repository user.Repository) UseCase {
 }
 
 func (i *interactor) Execute(ctx context.Context, in Input) (Output, error) {
-	if in.UserID <= 0 {
+	if strings.TrimSpace(in.UserID) == "" {
 		return Output{}, ErrInvalidUserID
 	}
 	if in.Password == "" {

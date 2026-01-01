@@ -41,7 +41,7 @@ func (r *UserRepository) Close() {
 }
 
 // Authenticate checks whether the provided credentials match.
-func (r *UserRepository) Authenticate(ctx context.Context, userID int64, passwordHash string) (bool, error) {
+func (r *UserRepository) Authenticate(ctx context.Context, userID string, passwordHash string) (bool, error) {
 	var storedHash string
 	if err := r.pool.QueryRow(ctx, `
 SELECT password_hash
@@ -60,7 +60,7 @@ WHERE id = $1
 var _ user.Repository = (*UserRepository)(nil)
 
 // Create inserts a user with hashed credentials.
-func (r *UserRepository) Create(ctx context.Context, userID int64, email, passwordHash string) error {
+func (r *UserRepository) Create(ctx context.Context, userID string, email, passwordHash string) error {
 	_, err := r.pool.Exec(ctx, `
 INSERT INTO users (id, email, password_hash)
 VALUES ($1, $2, $3)
