@@ -30,7 +30,7 @@ func NewMux(ocrUsecase ocr.UseCase, itemsUsecase items.UseCase, receiptsUsecase 
 	// ログインエンドポイント
 	mux.Handle("/api/login", LoggingMiddleware(loginHandler))
 	// ユーザー作成エンドポイント
-	mux.Handle("/api/users", LoggingMiddleware(signupHandler))
+	mux.Handle("/api/user/register", LoggingMiddleware(signupHandler))
 	// レシート ID から items を取得するエンドポイント
 	mux.Handle("/api/receipts/items", LoggingMiddleware(itemsHandler))
 	// レシート内容を登録するエンドポイント

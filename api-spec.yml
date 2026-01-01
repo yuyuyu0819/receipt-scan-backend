@@ -73,7 +73,7 @@ paths:
           description: Validation error
         "401":
           description: Invalid credentials
-  /api/users:
+  /api/user/register:
     post:
       summary: Create a new user with reCAPTCHA verification
       requestBody:
