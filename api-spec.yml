@@ -53,8 +53,7 @@ paths:
                 - password
               properties:
                 userId:
-                  type: integer
-                  format: int64
+                  type: string
                 password:
                   type: string
       responses:

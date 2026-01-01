@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"receiptScan-backend/internal/usecase/signup"
 )
@@ -17,7 +19,7 @@ func NewSignupHandler(u signup.UseCase) *SignupHandler {
 }
 
 type signupRequest struct {
-	UserID         int64  `json:"userId"`
+	UserID         string `json:"userId"`
 	Password       string `json:"password"`
 	Email          string `json:"email"`
 	RecaptchaToken string `json:"recaptchaToken"`
@@ -39,8 +41,14 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, err := strconv.ParseInt(strings.TrimSpace(req.UserID), 10, 64)
+	if err != nil || userID <= 0 {
+		http.Error(w, signup.ErrInvalidUserID.Error(), http.StatusBadRequest)
+		return
+	}
+
 	_, err := h.usecase.Execute(r.Context(), signup.Input{
-		UserID:         req.UserID,
+		UserID:         userID,
 		Password:       req.Password,
 		Email:          req.Email,
 		RecaptchaToken: req.RecaptchaToken,
