@@ -74,7 +74,7 @@ paths:
           description: Invalid credentials
   /api/user/register:
     post:
-      summary: Create a new user with reCAPTCHA verification
+      summary: Create a new user
       requestBody:
         required: true
         content:
@@ -85,7 +85,6 @@ paths:
                 - userId
                 - password
                 - email
-                - recaptchaToken
               properties:
                 userId:
                   type: string
@@ -94,8 +93,6 @@ paths:
                 email:
                   type: string
                   format: email
-                recaptchaToken:
-                  type: string
       responses:
         "200":
           description: User created
