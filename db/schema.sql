@@ -1,6 +1,6 @@
 -- Users table used for authentication.
 CREATE TABLE IF NOT EXISTS users (
-    id BIGSERIAL PRIMARY KEY,
+    id TEXT PRIMARY KEY,
     email TEXT NOT NULL,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -11,6 +11,8 @@ ALTER TABLE IF EXISTS users
     ADD COLUMN IF NOT EXISTS password_hash TEXT;
 ALTER TABLE IF EXISTS users
     DROP COLUMN IF EXISTS password;
+ALTER TABLE IF EXISTS users
+    ALTER COLUMN id TYPE TEXT USING id::text;
 
 -- Receipts table used by the application.
 --
@@ -20,11 +22,13 @@ ALTER TABLE IF EXISTS users
 ALTER TABLE IF EXISTS receipts
     DROP COLUMN IF EXISTS items;
 ALTER TABLE IF EXISTS receipts
-    ADD COLUMN IF NOT EXISTS user_id BIGINT REFERENCES users(id);
+    ADD COLUMN IF NOT EXISTS user_id TEXT REFERENCES users(id);
+ALTER TABLE IF EXISTS receipts
+    ALTER COLUMN user_id TYPE TEXT USING user_id::text;
 
 CREATE TABLE IF NOT EXISTS receipts (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT REFERENCES users(id),
+    user_id TEXT REFERENCES users(id),
     store TEXT NOT NULL,
     date DATE NOT NULL,
     total INTEGER NOT NULL CHECK (total >= 0),

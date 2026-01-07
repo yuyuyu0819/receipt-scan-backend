@@ -114,7 +114,7 @@ ORDER BY id
 }
 
 // GetReceiptsByUserID returns receipts linked to the given user ID.
-func (r *ReceiptRepository) GetReceiptsByUserID(ctx context.Context, userID int64) ([]receipt.Receipt, error) {
+func (r *ReceiptRepository) GetReceiptsByUserID(ctx context.Context, userID string) ([]receipt.Receipt, error) {
 	rows, err := r.pool.Query(ctx, `
 SELECT id, user_id, store, date, total
 FROM receipts

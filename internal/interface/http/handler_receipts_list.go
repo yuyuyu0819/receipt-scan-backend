@@ -18,7 +18,7 @@ func NewReceiptsListHandler(u receiptslist.UseCase) *ReceiptsListHandler {
 }
 
 type receiptsListRequest struct {
-	UserID int64 `json:"userId"`
+	UserID string `json:"userId"`
 }
 
 type receiptsListResponse struct {

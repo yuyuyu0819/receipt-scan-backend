@@ -2,7 +2,7 @@ package receipt
 
 // FormattedReceipt は ChatGPT によって整形されたレシート情報を表します。
 type FormattedReceipt struct {
-	UserID int64         `json:"userId"`
+	UserID string        `json:"userId"`
 	Store  string        `json:"store"`
 	Date   string        `json:"date"`
 	Total  int           `json:"total"`

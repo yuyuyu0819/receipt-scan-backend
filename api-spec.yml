@@ -53,8 +53,7 @@ paths:
                 - password
               properties:
                 userId:
-                  type: integer
-                  format: int64
+                  type: string
                 password:
                   type: string
       responses:
@@ -73,9 +72,9 @@ paths:
           description: Validation error
         "401":
           description: Invalid credentials
-  /api/users:
+  /api/user/register:
     post:
-      summary: Create a new user with reCAPTCHA verification
+      summary: Create a new user
       requestBody:
         required: true
         content:
@@ -86,18 +85,14 @@ paths:
                 - userId
                 - password
                 - email
-                - recaptchaToken
               properties:
                 userId:
-                  type: integer
-                  format: int64
+                  type: string
                 password:
                   type: string
                 email:
                   type: string
                   format: email
-                recaptchaToken:
-                  type: string
       responses:
         "200":
           description: User created
@@ -179,8 +174,7 @@ paths:
                 - userId
               properties:
                 userId:
-                  type: integer
-                  format: int64
+                  type: string
       responses:
         "200":
           description: Receipts list
@@ -225,8 +219,7 @@ components:
         - items
       properties:
         userId:
-          type: integer
-          format: int64
+          type: string
         store:
           type: string
         date:
@@ -268,8 +261,7 @@ components:
           type: integer
           format: int64
         userId:
-          type: integer
-          format: int64
+          type: string
         store:
           type: string
         date:
