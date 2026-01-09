@@ -17,7 +17,7 @@ func NewLoginHandler(u login.UseCase) *LoginHandler {
 }
 
 type loginRequest struct {
-	UserID   int64  `json:"userId"`
+	UserName string `json:"userName"`
 	Password string `json:"password"`
 }
 
@@ -37,11 +37,11 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.usecase.Execute(r.Context(), login.Input{UserID: req.UserID, Password: req.Password})
+	_, err := h.usecase.Execute(r.Context(), login.Input{UserName: req.UserName, Password: req.Password})
 	if err != nil {
 		status := http.StatusInternalServerError
 		switch {
-		case errors.Is(err, login.ErrInvalidUserID),
+		case errors.Is(err, login.ErrInvalidUserName),
 			errors.Is(err, login.ErrInvalidPassword):
 			status = http.StatusBadRequest
 		case errors.Is(err, login.ErrAuthenticationFailed):

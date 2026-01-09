@@ -3,12 +3,13 @@ package receipts
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"receiptScan-backend/internal/domain/receipt"
 )
 
-// ErrInvalidUserID is returned when the user ID is invalid.
-var ErrInvalidUserID = errors.New("userId must be positive")
+// ErrInvalidUserName is returned when the user name is invalid.
+var ErrInvalidUserName = errors.New("userName must not be empty")
 
 // UseCase saves formatted receipts.
 type UseCase interface {
@@ -25,8 +26,8 @@ func NewUseCase(repository receipt.Repository) UseCase {
 }
 
 func (i *interactor) Execute(ctx context.Context, in Input) (Output, error) {
-	if in.Receipt.UserID <= 0 {
-		return Output{}, ErrInvalidUserID
+	if strings.TrimSpace(in.Receipt.UserName) == "" {
+		return Output{}, ErrInvalidUserName
 	}
 	if err := i.repository.Save(ctx, in.Receipt); err != nil {
 		return Output{}, err

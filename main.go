@@ -8,7 +8,6 @@ import (
 
 	"receiptScan-backend/internal/infra/db"
 	"receiptScan-backend/internal/infra/openai"
-	"receiptScan-backend/internal/infra/recaptcha"
 	"receiptScan-backend/internal/infra/vision"
 	iface "receiptScan-backend/internal/interface/http"
 	"receiptScan-backend/internal/usecase/items"
@@ -56,18 +55,13 @@ func main() {
 	if err != nil {
 		log.Fatal("failed to initialize OpenAI formatter:", err)
 	}
-	verifier, err := recaptcha.NewGoogleVerifierFromEnv()
-	if err != nil {
-		log.Fatal("failed to initialize reCAPTCHA verifier:", err)
-	}
-
 	// usecase
 	ocrUsecase := ocr.NewUseCase(ocrService, formatter)
 	itemsUsecase := items.NewUseCase(receiptRepo)
 	receiptsUsecase := receipts.NewUseCase(receiptRepo)
 	receiptsListUsecase := receiptslist.NewUseCase(receiptRepo)
 	loginUsecase := login.NewUseCase(userRepo)
-	signupUsecase := signup.NewUseCase(userRepo, verifier)
+	signupUsecase := signup.NewUseCase(userRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {

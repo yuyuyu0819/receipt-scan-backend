@@ -17,10 +17,9 @@ func NewSignupHandler(u signup.UseCase) *SignupHandler {
 }
 
 type signupRequest struct {
-	UserID         int64  `json:"userId"`
-	Password       string `json:"password"`
-	Email          string `json:"email"`
-	RecaptchaToken string `json:"recaptchaToken"`
+	UserName string `json:"userName"`
+	Password string `json:"password"`
+	Email    string `json:"email"`
 }
 
 type signupResponse struct {
@@ -40,21 +39,17 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := h.usecase.Execute(r.Context(), signup.Input{
-		UserID:         req.UserID,
-		Password:       req.Password,
-		Email:          req.Email,
-		RecaptchaToken: req.RecaptchaToken,
+		UserName: req.UserName,
+		Password: req.Password,
+		Email:    req.Email,
 	})
 	if err != nil {
 		status := http.StatusInternalServerError
 		switch {
-		case errors.Is(err, signup.ErrInvalidUserID),
+		case errors.Is(err, signup.ErrInvalidUserName),
 			errors.Is(err, signup.ErrInvalidPassword),
-			errors.Is(err, signup.ErrInvalidEmail),
-			errors.Is(err, signup.ErrInvalidRecaptchaToken):
+			errors.Is(err, signup.ErrInvalidEmail):
 			status = http.StatusBadRequest
-		case errors.Is(err, signup.ErrRecaptchaFailed):
-			status = http.StatusForbidden
 		}
 		http.Error(w, err.Error(), status)
 		return

@@ -41,7 +41,7 @@ paths:
           description: OpenAI context length exceeded
   /api/login:
     post:
-      summary: Log in with userId and password
+      summary: Log in with userName and password
       requestBody:
         required: true
         content:
@@ -49,12 +49,11 @@ paths:
             schema:
               type: object
               required:
-                - userId
+                - userName
                 - password
               properties:
-                userId:
-                  type: integer
-                  format: int64
+                userName:
+                  type: string
                 password:
                   type: string
       responses:
@@ -73,9 +72,9 @@ paths:
           description: Validation error
         "401":
           description: Invalid credentials
-  /api/users:
+  /api/user/register:
     post:
-      summary: Create a new user with reCAPTCHA verification
+      summary: Create a new user
       requestBody:
         required: true
         content:
@@ -83,21 +82,17 @@ paths:
             schema:
               type: object
               required:
-                - userId
+                - userName
                 - password
                 - email
-                - recaptchaToken
               properties:
-                userId:
-                  type: integer
-                  format: int64
+                userName:
+                  type: string
                 password:
                   type: string
                 email:
                   type: string
                   format: email
-                recaptchaToken:
-                  type: string
       responses:
         "200":
           description: User created
@@ -168,7 +163,7 @@ paths:
           description: Validation error
   /api/receipts/by-user:
     post:
-      summary: Fetch receipts by userId
+      summary: Fetch receipts by userName
       requestBody:
         required: true
         content:
@@ -176,11 +171,10 @@ paths:
             schema:
               type: object
               required:
-                - userId
+                - userName
               properties:
-                userId:
-                  type: integer
-                  format: int64
+                userName:
+                  type: string
       responses:
         "200":
           description: Receipts list
@@ -218,15 +212,14 @@ components:
     FormattedReceipt:
       type: object
       required:
-        - userId
+        - userName
         - store
         - date
         - total
         - items
       properties:
-        userId:
-          type: integer
-          format: int64
+        userName:
+          type: string
         store:
           type: string
         date:
@@ -259,7 +252,7 @@ components:
       type: object
       required:
         - id
-        - userId
+        - userName
         - store
         - date
         - total
@@ -267,9 +260,8 @@ components:
         id:
           type: integer
           format: int64
-        userId:
-          type: integer
-          format: int64
+        userName:
+          type: string
         store:
           type: string
         date:
