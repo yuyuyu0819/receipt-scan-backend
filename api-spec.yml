@@ -89,6 +89,7 @@ paths:
                 - userName
                 - password
                 - email
+                - recaptchaToken
               properties:
                 userName:
                   type: string
@@ -97,6 +98,8 @@ paths:
                 email:
                   type: string
                   format: email
+                recaptchaToken:
+                  type: string
       responses:
         "200":
           description: User created
