@@ -133,6 +133,11 @@ ORDER BY date DESC, id DESC
 		if err := rows.Scan(&entry.ID, &entry.UserID, &entry.Store, &purchaseDate, &entry.Total); err != nil {
 			return nil, fmt.Errorf("scan receipt: %w", err)
 		}
+		items, err := r.GetItemsByReceiptID(ctx, entry.ID)
+		if err != nil {
+			return nil, fmt.Errorf("query receipt items: %w", err)
+		}
+		entry.Items = mapReceiptItems(items)
 		entry.Date = purchaseDate.Format(time.DateOnly)
 		receipts = append(receipts, entry)
 	}
@@ -142,6 +147,17 @@ ORDER BY date DESC, id DESC
 	}
 
 	return receipts, nil
+}
+
+func mapReceiptItems(items []receipt.Item) []receipt.ReceiptItem {
+	mapped := make([]receipt.ReceiptItem, 0, len(items))
+	for _, item := range items {
+		mapped = append(mapped, receipt.ReceiptItem{
+			Name:  item.Name,
+			Price: item.Price,
+		})
+	}
+	return mapped
 }
 
 func parsePurchaseDate(dateStr string) (time.Time, error) {

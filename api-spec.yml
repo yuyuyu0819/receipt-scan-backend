@@ -266,6 +266,7 @@ components:
         - store
         - date
         - total
+        - items
       properties:
         id:
           type: integer
@@ -279,3 +280,7 @@ components:
           type: string
         total:
           type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReceiptItem"
