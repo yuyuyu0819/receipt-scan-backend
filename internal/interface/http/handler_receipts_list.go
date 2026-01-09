@@ -18,7 +18,7 @@ func NewReceiptsListHandler(u receiptslist.UseCase) *ReceiptsListHandler {
 }
 
 type receiptsListRequest struct {
-	UserName string `json:"userName"`
+	UserID int64 `json:"userId"`
 }
 
 type receiptsListResponse struct {
@@ -37,10 +37,10 @@ func (h *ReceiptsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	out, err := h.usecase.Execute(r.Context(), receiptslist.Input{UserName: req.UserName})
+	out, err := h.usecase.Execute(r.Context(), receiptslist.Input{UserID: req.UserID})
 	if err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, receiptslist.ErrInvalidUserName) {
+		if errors.Is(err, receiptslist.ErrInvalidUserID) {
 			status = http.StatusBadRequest
 		}
 		http.Error(w, err.Error(), status)

@@ -42,9 +42,10 @@ func (i *interactor) Execute(ctx context.Context, in Input) (Output, error) {
 		return Output{}, ErrInvalidEmail
 	}
 	hashed := user.HashPassword(in.UserName, in.Password)
-	if err := i.repository.Create(ctx, in.UserName, in.Email, hashed); err != nil {
+	userID, err := i.repository.Create(ctx, in.UserName, in.Email, hashed)
+	if err != nil {
 		return Output{}, err
 	}
 
-	return Output{}, nil
+	return Output{UserID: userID}, nil
 }

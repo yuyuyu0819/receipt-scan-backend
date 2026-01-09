@@ -24,6 +24,7 @@ type signupRequest struct {
 
 type signupResponse struct {
 	Message string `json:"message"`
+	UserID  int64  `json:"userId"`
 }
 
 func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -38,7 +39,7 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.usecase.Execute(r.Context(), signup.Input{
+	out, err := h.usecase.Execute(r.Context(), signup.Input{
 		UserName: req.UserName,
 		Password: req.Password,
 		Email:    req.Email,
@@ -56,5 +57,5 @@ func (h *SignupHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(signupResponse{Message: "created"})
+	_ = json.NewEncoder(w).Encode(signupResponse{Message: "created", UserID: out.UserID})
 }

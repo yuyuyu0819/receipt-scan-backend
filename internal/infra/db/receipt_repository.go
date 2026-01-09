@@ -60,10 +60,10 @@ func (r *ReceiptRepository) Save(ctx context.Context, f receipt.FormattedReceipt
 
 	var receiptID int64
 	err = tx.QueryRow(ctx, `
-INSERT INTO receipts (user_name, store, date, total)
+INSERT INTO receipts (user_id, store, date, total)
 VALUES ($1, $2, $3, $4)
 RETURNING id
-`, f.UserName, f.Store, purchaseDate, f.Total).Scan(&receiptID)
+`, f.UserID, f.Store, purchaseDate, f.Total).Scan(&receiptID)
 	if err != nil {
 		return fmt.Errorf("insert receipt: %w", err)
 	}
@@ -113,14 +113,14 @@ ORDER BY id
 	return items, nil
 }
 
-// GetReceiptsByUserID returns receipts linked to the given user name.
-func (r *ReceiptRepository) GetReceiptsByUserID(ctx context.Context, userName string) ([]receipt.Receipt, error) {
+// GetReceiptsByUserID returns receipts linked to the given user ID.
+func (r *ReceiptRepository) GetReceiptsByUserID(ctx context.Context, userID int64) ([]receipt.Receipt, error) {
 	rows, err := r.pool.Query(ctx, `
-SELECT id, user_name, store, date, total
+SELECT id, user_id, store, date, total
 FROM receipts
-WHERE user_name = $1
+WHERE user_id = $1
 ORDER BY date DESC, id DESC
-`, userName)
+`, userID)
 	if err != nil {
 		return nil, fmt.Errorf("query receipts: %w", err)
 	}
@@ -130,7 +130,7 @@ ORDER BY date DESC, id DESC
 	for rows.Next() {
 		var entry receipt.Receipt
 		var purchaseDate time.Time
-		if err := rows.Scan(&entry.ID, &entry.UserName, &entry.Store, &purchaseDate, &entry.Total); err != nil {
+		if err := rows.Scan(&entry.ID, &entry.UserID, &entry.Store, &purchaseDate, &entry.Total); err != nil {
 			return nil, fmt.Errorf("scan receipt: %w", err)
 		}
 		entry.Date = purchaseDate.Format(time.DateOnly)

@@ -35,7 +35,7 @@ func (h *ReceiptsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if _, err := h.usecase.Execute(r.Context(), receipts.Input{Receipt: req}); err != nil {
 		status := http.StatusInternalServerError
-		if errors.Is(err, receipts.ErrInvalidUserName) {
+		if errors.Is(err, receipts.ErrInvalidUserID) {
 			status = http.StatusBadRequest
 		}
 		http.Error(w, err.Error(), status)

@@ -65,9 +65,13 @@ paths:
                 type: object
                 required:
                   - message
+                  - userId
                 properties:
                   message:
                     type: string
+                  userId:
+                    type: integer
+                    format: int64
         "400":
           description: Validation error
         "401":
@@ -102,9 +106,13 @@ paths:
                 type: object
                 required:
                   - message
+                  - userId
                 properties:
                   message:
                     type: string
+                  userId:
+                    type: integer
+                    format: int64
         "400":
           description: Validation error
   /api/receipts:
@@ -163,7 +171,7 @@ paths:
           description: Validation error
   /api/receipts/by-user:
     post:
-      summary: Fetch receipts by userName
+      summary: Fetch receipts by userId
       requestBody:
         required: true
         content:
@@ -171,10 +179,11 @@ paths:
             schema:
               type: object
               required:
-                - userName
+                - userId
               properties:
-                userName:
-                  type: string
+                userId:
+                  type: integer
+                  format: int64
       responses:
         "200":
           description: Receipts list
@@ -212,14 +221,15 @@ components:
     FormattedReceipt:
       type: object
       required:
-        - userName
+        - userId
         - store
         - date
         - total
         - items
       properties:
-        userName:
-          type: string
+        userId:
+          type: integer
+          format: int64
         store:
           type: string
         date:
@@ -252,7 +262,7 @@ components:
       type: object
       required:
         - id
-        - userName
+        - userId
         - store
         - date
         - total
@@ -260,8 +270,9 @@ components:
         id:
           type: integer
           format: int64
-        userName:
-          type: string
+        userId:
+          type: integer
+          format: int64
         store:
           type: string
         date:

@@ -23,6 +23,7 @@ type loginRequest struct {
 
 type loginResponse struct {
 	Message string `json:"message"`
+	UserID  int64  `json:"userId"`
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -37,7 +38,7 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.usecase.Execute(r.Context(), login.Input{UserName: req.UserName, Password: req.Password})
+	out, err := h.usecase.Execute(r.Context(), login.Input{UserName: req.UserName, Password: req.Password})
 	if err != nil {
 		status := http.StatusInternalServerError
 		switch {
@@ -52,5 +53,5 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(loginResponse{Message: "ok"})
+	_ = json.NewEncoder(w).Encode(loginResponse{Message: "ok", UserID: out.UserID})
 }
