@@ -25,7 +25,7 @@ func (s *stubRepository) GetItemsByReceiptID(ctx context.Context, receiptID int6
 	return s.items, nil
 }
 
-func (s *stubRepository) GetReceiptsByUserID(ctx context.Context, userID string) ([]receipt.Receipt, error) {
+func (s *stubRepository) GetReceiptsByUserID(ctx context.Context, userID int64) ([]receipt.Receipt, error) {
 	return nil, nil
 }
 
