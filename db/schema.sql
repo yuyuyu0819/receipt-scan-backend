@@ -18,10 +18,6 @@ ALTER TABLE IF EXISTS users
     DROP COLUMN IF EXISTS password;
 ALTER TABLE IF EXISTS users
     ADD CONSTRAINT users_user_name_key UNIQUE (user_name);
-ALTER TABLE IF EXISTS users
-    DROP CONSTRAINT IF EXISTS users_pkey;
-ALTER TABLE IF EXISTS users
-    ADD PRIMARY KEY (id);
 
 -- Receipts table used by the application.
 --
@@ -31,9 +27,15 @@ ALTER TABLE IF EXISTS users
 ALTER TABLE IF EXISTS receipts
     DROP COLUMN IF EXISTS items;
 ALTER TABLE IF EXISTS receipts
+    DROP CONSTRAINT IF EXISTS receipts_user_name_fkey;
+ALTER TABLE IF EXISTS receipts
     ADD COLUMN IF NOT EXISTS user_id BIGINT REFERENCES users(id);
 ALTER TABLE IF EXISTS receipts
     DROP COLUMN IF EXISTS user_name;
+ALTER TABLE IF EXISTS users
+    DROP CONSTRAINT IF EXISTS users_pkey;
+ALTER TABLE IF EXISTS users
+    ADD PRIMARY KEY (id);
 
 CREATE TABLE IF NOT EXISTS receipts (
     id BIGSERIAL PRIMARY KEY,
