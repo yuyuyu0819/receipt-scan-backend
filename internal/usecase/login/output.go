@@ -1,4 +1,6 @@
 package login
 
 // Output represents a login response.
-type Output struct{}
+type Output struct {
+	UserID int64
+}

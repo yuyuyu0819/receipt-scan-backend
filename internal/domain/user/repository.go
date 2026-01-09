@@ -4,6 +4,6 @@ import "context"
 
 // Repository is the interface for user authentication.
 type Repository interface {
-	Authenticate(ctx context.Context, userID int64, passwordHash string) (bool, error)
-	Create(ctx context.Context, userID int64, email, passwordHash string) error
+	Authenticate(ctx context.Context, userName string, passwordHash string) (int64, bool, error)
+	Create(ctx context.Context, userName string, email, passwordHash string) (int64, error)
 }

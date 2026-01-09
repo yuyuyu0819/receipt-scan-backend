@@ -41,33 +41,35 @@ func (r *UserRepository) Close() {
 }
 
 // Authenticate checks whether the provided credentials match.
-func (r *UserRepository) Authenticate(ctx context.Context, userID int64, passwordHash string) (bool, error) {
+func (r *UserRepository) Authenticate(ctx context.Context, userName string, passwordHash string) (int64, bool, error) {
 	var storedHash string
+	var userID int64
 	if err := r.pool.QueryRow(ctx, `
-SELECT password_hash
+SELECT id, password_hash
 FROM users
-WHERE id = $1
-`, userID).Scan(&storedHash); err != nil {
+WHERE user_name = $1
+`, userName).Scan(&userID, &storedHash); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return false, nil
+			return 0, false, nil
 		}
-		return false, fmt.Errorf("query user: %w", err)
+		return 0, false, fmt.Errorf("query user: %w", err)
 	}
 
-	return storedHash == passwordHash, nil
+	return userID, storedHash == passwordHash, nil
 }
 
 var _ user.Repository = (*UserRepository)(nil)
 
 // Create inserts a user with hashed credentials.
-func (r *UserRepository) Create(ctx context.Context, userID int64, email, passwordHash string) error {
-	_, err := r.pool.Exec(ctx, `
-INSERT INTO users (id, email, password_hash)
+func (r *UserRepository) Create(ctx context.Context, userName string, email, passwordHash string) (int64, error) {
+	var userID int64
+	if err := r.pool.QueryRow(ctx, `
+INSERT INTO users (user_name, email, password_hash)
 VALUES ($1, $2, $3)
-`, userID, email, passwordHash)
-	if err != nil {
-		return fmt.Errorf("insert user: %w", err)
+RETURNING id
+`, userName, email, passwordHash).Scan(&userID); err != nil {
+		return 0, fmt.Errorf("insert user: %w", err)
 	}
 
-	return nil
+	return userID, nil
 }

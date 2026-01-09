@@ -41,7 +41,7 @@ paths:
           description: OpenAI context length exceeded
   /api/login:
     post:
-      summary: Log in with userId and password
+      summary: Log in with userName and password
       requestBody:
         required: true
         content:
@@ -49,12 +49,11 @@ paths:
             schema:
               type: object
               required:
-                - userId
+                - userName
                 - password
               properties:
-                userId:
-                  type: integer
-                  format: int64
+                userName:
+                  type: string
                 password:
                   type: string
       responses:
@@ -66,16 +65,20 @@ paths:
                 type: object
                 required:
                   - message
+                  - userId
                 properties:
                   message:
                     type: string
+                  userId:
+                    type: integer
+                    format: int64
         "400":
           description: Validation error
         "401":
           description: Invalid credentials
-  /api/users:
+  /api/user/register:
     post:
-      summary: Create a new user with reCAPTCHA verification
+      summary: Create a new user
       requestBody:
         required: true
         content:
@@ -83,21 +86,17 @@ paths:
             schema:
               type: object
               required:
-                - userId
+                - userName
                 - password
                 - email
-                - recaptchaToken
               properties:
-                userId:
-                  type: integer
-                  format: int64
+                userName:
+                  type: string
                 password:
                   type: string
                 email:
                   type: string
                   format: email
-                recaptchaToken:
-                  type: string
       responses:
         "200":
           description: User created
@@ -107,9 +106,13 @@ paths:
                 type: object
                 required:
                   - message
+                  - userId
                 properties:
                   message:
                     type: string
+                  userId:
+                    type: integer
+                    format: int64
         "400":
           description: Validation error
   /api/receipts:
@@ -263,6 +266,7 @@ components:
         - store
         - date
         - total
+        - items
       properties:
         id:
           type: integer
@@ -276,3 +280,7 @@ components:
           type: string
         total:
           type: integer
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ReceiptItem"
