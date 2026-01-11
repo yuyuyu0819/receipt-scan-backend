@@ -190,11 +190,6 @@ func (c *client) Format(ctx context.Context, rawText string) (receipt.FormattedR
 
 	var formatted receipt.FormattedReceipt
 	if err := json.Unmarshal([]byte(content), &formatted); err != nil {
-		log.Printf(
-			"failed to parse OpenAI response, rawText=%q, response=%q",
-			rawText,
-			completion.Choices[0].Message.Content,
-		)
 		return receipt.FormattedReceipt{}, fmt.Errorf("failed to parse OpenAI response: %w", err)
 	}
 

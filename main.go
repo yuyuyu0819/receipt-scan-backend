@@ -25,8 +25,6 @@ func main() {
 		log.Println(".env の読み込みに失敗:", err)
 	}
 
-	log.Println("GOOGLE_APPLICATION_CREDENTIALS =", os.Getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-
 	ctx := context.Background()
 
 	dbURL := os.Getenv("DATABASE_URL")
