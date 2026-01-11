@@ -32,11 +32,11 @@ func NewMux(ocrUsecase ocr.UseCase, itemsUsecase items.UseCase, receiptsUsecase 
 	// ユーザー作成エンドポイント
 	mux.Handle("/api/user/register", LoggingMiddleware(signupHandler))
 	// レシート ID から items を取得するエンドポイント
-	mux.Handle("/api/receipts/items", LoggingMiddleware(itemsHandler))
+	mux.Handle("/api/receipts/items", LoggingMiddleware(AuthMiddleware(itemsHandler)))
 	// レシート内容を登録するエンドポイント
-	mux.Handle("/api/receipts", LoggingMiddleware(receiptsHandler))
+	mux.Handle("/api/receipts", LoggingMiddleware(AuthMiddleware(receiptsHandler)))
 	// ユーザー ID からレシートを取得するエンドポイント
-	mux.Handle("/api/receipts/by-user", LoggingMiddleware(receiptsListHandler))
+	mux.Handle("/api/receipts/by-user", LoggingMiddleware(AuthMiddleware(receiptsListHandler)))
 
 	// health エンドポイント（ここにもログを追加）
 	mux.Handle("/health", LoggingMiddleware(stdhttp.HandlerFunc(func(w stdhttp.ResponseWriter, r *stdhttp.Request) {

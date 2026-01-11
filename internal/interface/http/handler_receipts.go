@@ -33,6 +33,13 @@ func (h *ReceiptsHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	userID, ok := userIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	req.UserID = userID
+
 	if _, err := h.usecase.Execute(r.Context(), receipts.Input{Receipt: req}); err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, receipts.ErrInvalidUserID) {

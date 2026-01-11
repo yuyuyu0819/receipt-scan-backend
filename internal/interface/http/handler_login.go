@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
+	"time"
 
 	"receiptScan-backend/internal/usecase/login"
 )
@@ -24,6 +26,7 @@ type loginRequest struct {
 type loginResponse struct {
 	Message string `json:"message"`
 	UserID  int64  `json:"userId"`
+	Token   string `json:"token"`
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -52,6 +55,17 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		http.Error(w, "JWT_SECRET is not set", http.StatusInternalServerError)
+		return
+	}
+	token, err := buildJWT(secret, out.UserID, time.Now(), 24*time.Hour)
+	if err != nil {
+		http.Error(w, "failed to generate token", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(loginResponse{Message: "ok", UserID: out.UserID})
+	_ = json.NewEncoder(w).Encode(loginResponse{Message: "ok", UserID: out.UserID, Token: token})
 }

@@ -37,7 +37,17 @@ func (h *ReceiptsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	out, err := h.usecase.Execute(r.Context(), receiptslist.Input{UserID: req.UserID})
+	userID, ok := userIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "unauthorized", http.StatusUnauthorized)
+		return
+	}
+	if req.UserID != 0 && req.UserID != userID {
+		http.Error(w, "forbidden", http.StatusForbidden)
+		return
+	}
+
+	out, err := h.usecase.Execute(r.Context(), receiptslist.Input{UserID: userID})
 	if err != nil {
 		status := http.StatusInternalServerError
 		if errors.Is(err, receiptslist.ErrInvalidUserID) {

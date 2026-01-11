@@ -66,12 +66,15 @@ paths:
                 required:
                   - message
                   - userId
+                  - token
                 properties:
                   message:
                     type: string
                   userId:
                     type: integer
                     format: int64
+                  token:
+                    type: string
         "400":
           description: Validation error
         "401":
@@ -118,6 +121,13 @@ paths:
   /api/receipts:
     post:
       summary: Save a formatted receipt
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer {token}
       requestBody:
         required: true
         content:
@@ -141,6 +151,13 @@ paths:
   /api/receipts/items:
     post:
       summary: Fetch receipt items by receiptId
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer {token}
       requestBody:
         required: true
         content:
@@ -172,14 +189,19 @@ paths:
   /api/receipts/by-user:
     post:
       summary: Fetch receipts by userId
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+          description: Bearer {token}
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required:
-                - userId
               properties:
                 userId:
                   type: integer
@@ -221,7 +243,6 @@ components:
     FormattedReceipt:
       type: object
       required:
-        - userId
         - store
         - date
         - total
