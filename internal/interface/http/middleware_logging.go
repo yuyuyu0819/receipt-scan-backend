@@ -32,7 +32,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		if err != nil {
 			log.Printf("[Request] method=%s path=%s body_read_error=%v", r.Method, r.URL.Path, err)
 		} else {
-			log.Printf("[Request] method=%s path=%s body=%s", r.Method, r.URL.Path, string(bodyBytes))
+			log.Printf("[Request] method=%s path=%s", r.Method, r.URL.Path)
 		}
 		r.Body = io.NopCloser(bytes.NewBuffer(bodyBytes))
 
@@ -43,9 +43,9 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 		if status == 0 {
 			status = http.StatusOK
 		}
-		log.Printf("[Response] method=%s path=%s status=%d body=%s", r.Method, r.URL.Path, status, recorder.body.String())
+		log.Printf("[Response] method=%s path=%s status=%d", r.Method, r.URL.Path, status)
 		if status >= http.StatusBadRequest {
-			log.Printf("[Error] method=%s path=%s status=%d error=%s", r.Method, r.URL.Path, status, recorder.body.String())
+			log.Printf("[Error] method=%s path=%s status=%d", r.Method, r.URL.Path, status)
 		}
 	})
 }
