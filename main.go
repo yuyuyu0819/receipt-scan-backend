@@ -67,6 +67,7 @@ func main() {
 	}
 
 	mux := iface.NewMux(ocrUsecase, itemsUsecase, receiptsUsecase, receiptsListUsecase, loginUsecase, signupUsecase)
+	handler := iface.CORSMiddleware(mux)
 	log.Println("Listening on :" + port)
-	log.Fatal(http.ListenAndServe(":"+port, mux))
+	log.Fatal(http.ListenAndServe(":"+port, handler))
 }
