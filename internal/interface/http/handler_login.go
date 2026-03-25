@@ -8,14 +8,16 @@ import (
 	"time"
 
 	"receiptScan-backend/internal/usecase/login"
+	"receiptScan-backend/internal/usecase/token"
 )
 
 type LoginHandler struct {
-	usecase login.UseCase
+	usecase      login.UseCase
+	tokenUsecase token.UseCase
 }
 
-func NewLoginHandler(u login.UseCase) *LoginHandler {
-	return &LoginHandler{usecase: u}
+func NewLoginHandler(u login.UseCase, t token.UseCase) *LoginHandler {
+	return &LoginHandler{usecase: u, tokenUsecase: t}
 }
 
 type loginRequest struct {
@@ -23,10 +25,15 @@ type loginRequest struct {
 	Password string `json:"password"`
 }
 
+type loginUser struct {
+	ID       int64  `json:"id"`
+	UserName string `json:"userName"`
+}
+
 type loginResponse struct {
-	Message string `json:"message"`
-	UserID  int64  `json:"userId"`
-	Token   string `json:"token"`
+	Token        string    `json:"token"`
+	RefreshToken string    `json:"refreshToken"`
+	User         loginUser `json:"user"`
 }
 
 func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -60,12 +67,22 @@ func (h *LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "JWT_SECRET is not set", http.StatusInternalServerError)
 		return
 	}
-	token, err := buildJWT(secret, out.UserID, time.Now(), 24*time.Hour)
+	accessToken, err := buildJWT(secret, out.UserID, time.Now(), 24*time.Hour)
 	if err != nil {
 		http.Error(w, "failed to generate token", http.StatusInternalServerError)
 		return
 	}
 
+	tokenOut, err := h.tokenUsecase.Create(r.Context(), token.CreateInput{UserID: out.UserID})
+	if err != nil {
+		http.Error(w, "failed to generate refresh token", http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	_ = json.NewEncoder(w).Encode(loginResponse{Message: "ok", UserID: out.UserID, Token: token})
+	_ = json.NewEncoder(w).Encode(loginResponse{
+		Token:        accessToken,
+		RefreshToken: tokenOut.Token,
+		User:         loginUser{ID: out.UserID, UserName: req.UserName},
+	})
 }

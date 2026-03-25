@@ -39,8 +39,7 @@ func (i *interactor) Execute(ctx context.Context, in Input) (Output, error) {
 		return Output{}, ErrInvalidPassword
 	}
 
-	hashed := user.HashPassword(in.UserName, in.Password)
-	userID, ok, err := i.repository.Authenticate(ctx, in.UserName, hashed)
+	userID, ok, err := i.repository.Authenticate(ctx, in.UserName, in.Password)
 	if err != nil {
 		return Output{}, err
 	}

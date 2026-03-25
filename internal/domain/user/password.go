@@ -1,13 +1,12 @@
 package user
 
-import (
-	"crypto/sha256"
-	"encoding/hex"
-	"fmt"
-)
+import "golang.org/x/crypto/bcrypt"
 
-// HashPassword hashes a password using user-specific data.
-func HashPassword(userName string, password string) string {
-	sum := sha256.Sum256([]byte(fmt.Sprintf("%s:%s", userName, password)))
-	return hex.EncodeToString(sum[:])
+// HashPassword hashes a password using bcrypt.
+func HashPassword(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", err
+	}
+	return string(hash), nil
 }

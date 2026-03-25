@@ -7,6 +7,7 @@ import (
 
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"golang.org/x/crypto/bcrypt"
 
 	"receiptScan-backend/internal/domain/user"
 )
@@ -41,7 +42,7 @@ func (r *UserRepository) Close() {
 }
 
 // Authenticate checks whether the provided credentials match.
-func (r *UserRepository) Authenticate(ctx context.Context, userName string, passwordHash string) (int64, bool, error) {
+func (r *UserRepository) Authenticate(ctx context.Context, userName string, password string) (int64, bool, error) {
 	var storedHash string
 	var userID int64
 	if err := r.pool.QueryRow(ctx, `
@@ -55,7 +56,10 @@ WHERE user_name = $1
 		return 0, false, fmt.Errorf("query user: %w", err)
 	}
 
-	return userID, storedHash == passwordHash, nil
+	if err := bcrypt.CompareHashAndPassword([]byte(storedHash), []byte(password)); err != nil {
+		return 0, false, nil
+	}
+	return userID, true, nil
 }
 
 var _ user.Repository = (*UserRepository)(nil)

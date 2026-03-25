@@ -17,33 +17,19 @@ func NewReceiptsListHandler(u receiptslist.UseCase) *ReceiptsListHandler {
 	return &ReceiptsListHandler{usecase: u}
 }
 
-type receiptsListRequest struct {
-	UserID int64 `json:"userId"`
-}
-
 type receiptsListResponse struct {
 	Receipts []receipt.Receipt `json:"receipts"`
 }
 
 func (h *ReceiptsListHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if r.Method != http.MethodPost {
-		http.Error(w, "POST only", http.StatusMethodNotAllowed)
-		return
-	}
-
-	var req receiptsListRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		http.Error(w, "invalid JSON: "+err.Error(), http.StatusBadRequest)
+	if r.Method != http.MethodGet {
+		http.Error(w, "GET only", http.StatusMethodNotAllowed)
 		return
 	}
 
 	userID, ok := userIDFromContext(r.Context())
 	if !ok {
 		http.Error(w, "unauthorized", http.StatusUnauthorized)
-		return
-	}
-	if req.UserID != 0 && req.UserID != userID {
-		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
 

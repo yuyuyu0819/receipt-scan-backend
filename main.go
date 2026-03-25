@@ -16,6 +16,7 @@ import (
 	"receiptScan-backend/internal/usecase/receipts"
 	"receiptScan-backend/internal/usecase/receiptslist"
 	"receiptScan-backend/internal/usecase/signup"
+	"receiptScan-backend/internal/usecase/token"
 
 	"github.com/joho/godotenv"
 )
@@ -42,6 +43,11 @@ func main() {
 		log.Fatal("failed to initialize user database:", err)
 	}
 	defer userRepo.Close()
+	refreshTokenRepo, err := db.NewRefreshTokenRepository(ctx, dbURL)
+	if err != nil {
+		log.Fatal("failed to initialize refresh token database:", err)
+	}
+	defer refreshTokenRepo.Close()
 
 	// infra: Vision クライアント
 	ocrService, err := vision.NewClient(ctx)
@@ -60,13 +66,14 @@ func main() {
 	receiptsListUsecase := receiptslist.NewUseCase(receiptRepo)
 	loginUsecase := login.NewUseCase(userRepo)
 	signupUsecase := signup.NewUseCase(userRepo)
+	tokenUsecase := token.NewUseCase(refreshTokenRepo)
 
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "8080"
 	}
 
-	mux := iface.NewMux(ocrUsecase, itemsUsecase, receiptsUsecase, receiptsListUsecase, loginUsecase, signupUsecase)
+	mux := iface.NewMux(ocrUsecase, itemsUsecase, receiptsUsecase, receiptsListUsecase, loginUsecase, signupUsecase, tokenUsecase)
 	handler := iface.CORSMiddleware(mux)
 	log.Println("Listening on :" + port)
 	log.Fatal(http.ListenAndServe(":"+port, handler))

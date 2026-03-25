@@ -3,6 +3,7 @@ package signup
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"receiptScan-backend/internal/domain/user"
@@ -41,7 +42,10 @@ func (i *interactor) Execute(ctx context.Context, in Input) (Output, error) {
 	if strings.TrimSpace(in.Email) == "" {
 		return Output{}, ErrInvalidEmail
 	}
-	hashed := user.HashPassword(in.UserName, in.Password)
+	hashed, err := user.HashPassword(in.Password)
+	if err != nil {
+		return Output{}, fmt.Errorf("hash password: %w", err)
+	}
 	userID, err := i.repository.Create(ctx, in.UserName, in.Email, hashed)
 	if err != nil {
 		return Output{}, err
